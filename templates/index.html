@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot FAQ</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .question { cursor: pointer; margin: 10px 0; padding: 10px; background: #f9f9f9; border: 1px solid #ddd; }
+        .question:hover { background: #f1f1f1; }
+        .answer { display: none; margin: 10px 0 0 20px; padding: 10px; background: #e8f8e8; border: 1px solid #c5e0c5; }
+    </style>
+</head>
+<body>
+    <h1>FAQ - Chatbot Ynov Maroc</h1>
+    <div id="faq-container"></div>
+
+    <script>
+        // Charger les questions via l'API
+        fetch('/faq')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('faq-container');
+                data.forEach(item => {
+                    // Créer la question
+                    const question = document.createElement('div');
+                    question.className = 'question';
+                    question.textContent = item.question;
+
+                    // Créer la réponse
+                    const answer = document.createElement('div');
+                    answer.className = 'answer';
+                    answer.textContent = item.answer;
+
+                    // Ajouter un événement de clic
+                    question.addEventListener('click', () => {
+                        answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+                    });
+
+                    // Ajouter les éléments au conteneur
+                    container.appendChild(question);
+                    container.appendChild(answer);
+                });
+            });
+    </script>
+</body>
+</html>
