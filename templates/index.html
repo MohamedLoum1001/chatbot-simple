@@ -1,47 +1,174 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot FAQ</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .question { cursor: pointer; margin: 10px 0; padding: 10px; background: #f9f9f9; border: 1px solid #ddd; }
-        .question:hover { background: #f1f1f1; }
-        .answer { display: none; margin: 10px 0 0 20px; padding: 10px; background: #e8f8e8; border: 1px solid #c5e0c5; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f6f9; /* Couleur d'arrière-plan douce */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            
+        }
+
+        .chat-container {
+            max-width: 600px;
+            border: 1px solid #ccc;
+            border-radius: 15px; /* Coins arrondis */
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Ombre légère */
+            background-color: #ffffff; /* Couleur de fond de la boîte */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-box {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px; /* Espacement interne */
+            background: #f9f9f9; /* Couleur de fond de la zone de chat */
+            border-bottom: 1px solid #ccc; /* Ligne de séparation */
+        }
+
+        .user-message,
+        .bot-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px; /* Coins arrondis pour les messages */
+            max-width: 80%; /* Limite de largeur pour les messages */
+            word-wrap: break-word; /* Permet le retour à la ligne dans les messages longs */
+        }
+
+        .user-message {
+            background: #e0f7fa; /* Couleur de fond pour le message de l'utilisateur */
+            align-self: flex-end;
+            margin-left: auto; /* Aligne à droite */
+        }
+
+        .bot-message {
+            background: #ffe0b2; /* Couleur de fond pour le message du bot */
+            align-self: flex-start;
+            margin-right: auto; /* Aligne à gauche */
+        }
+
+        .question {
+            cursor: pointer;
+            margin: 5px 0;
+            padding: 10px;
+            background: #e1f5fe; /* Couleur de fond pour les questions */
+            border-radius: 5px;
+            transition: background 0.3s; /* Transition douce pour le survol */
+        }
+
+        .question:hover {
+            background: #b3e5fc; /* Couleur de fond au survol */
+        }
+
+        button {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: none; /* Supprime les bordures par défaut */
+            border-radius: 5px; /* Coins arrondis pour le bouton */
+            background-color: #2196F3; /* Couleur de fond pour le bouton */
+            color: white; /* Couleur du texte */
+            cursor: pointer; /* Curseur en main */
+            transition: background 0.3s; /* Transition douce pour le survol */
+        }
+
+        button:hover {
+            background-color: #1976D2; /* Couleur de fond au survol */
+        }
+
+        h1 {
+            text-align: center; /* Centre le titre */
+            color: #333; /* Couleur du titre */
+        }
     </style>
 </head>
+
 <body>
     <h1>FAQ - Chatbot Ynov Maroc</h1>
-    <div id="faq-container"></div>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <button id="restart-button">Cliquer sur le bouton pour recommencer la discussion</button>
+    </div>
 
     <script>
+        const chatBox = document.getElementById('chat-box');
+
+        // Fonction pour simuler l'effet d'écriture
+        function typeWriter(element, text, index, callback) {
+            if (index < text.length) {
+                element.textContent += text.charAt(index);
+                index++;
+                setTimeout(() => typeWriter(element, text, index, callback), 50);
+            } else {
+                callback();
+            }
+        }
+
+        // Fonction pour afficher la réponse dans le chat
+        function displayChatMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'user-message' : 'bot-message';
+            chatBox.appendChild(messageDiv);
+            typeWriter(messageDiv, message, 0, () => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        // Fonction pour afficher les questions dans le chat
+        function displayQuestions(data) {
+            data.forEach(item => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.textContent = item.question;
+
+                questionDiv.addEventListener('click', () => {
+                    displayChatMessage(item.answer, false);
+
+                    // Afficher les questions de suivi
+                    if (item.follow_up.length > 0) {
+                        item.follow_up.forEach(followUp => {
+                            const followUpDiv = document.createElement('div');
+                            followUpDiv.className = 'question';
+                            followUpDiv.textContent = followUp.question;
+
+                            followUpDiv.addEventListener('click', () => {
+                                displayChatMessage(followUp.answer, false);
+                            });
+
+                            chatBox.appendChild(followUpDiv);
+                        });
+                    }
+                    
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                });
+
+                chatBox.appendChild(questionDiv);
+            });
+        }
+
         // Charger les questions via l'API
         fetch('/faq')
             .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById('faq-container');
-                data.forEach(item => {
-                    // Créer la question
-                    const question = document.createElement('div');
-                    question.className = 'question';
-                    question.textContent = item.question;
+            .then(data => displayQuestions(data));
 
-                    // Créer la réponse
-                    const answer = document.createElement('div');
-                    answer.className = 'answer';
-                    answer.textContent = item.answer;
-
-                    // Ajouter un événement de clic
-                    question.addEventListener('click', () => {
-                        answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
-                    });
-
-                    // Ajouter les éléments au conteneur
-                    container.appendChild(question);
-                    container.appendChild(answer);
-                });
-            });
+        // Réinitialiser la discussion
+        document.getElementById('restart-button').addEventListener('click', () => {
+            chatBox.innerHTML = ''; // Effacer les messages du chat
+            fetch('/faq')
+                .then(response => response.json())
+                .then(data => displayQuestions(data));
+        });
     </script>
 </body>
 </html>
